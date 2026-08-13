@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Band Connect — Equipment Request</title>
+<style>
+  :root{
+    --bg:#2B2149;--card:#FFFFFF;--ink:#1F1B2E;--soft:#6B6480;--line:#E3DFF0;
+    --accent:#6B5CE7;--accent2:#4FB8B0;--field:#F7F5FC;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(160deg,#2B2149,#3B2F6B);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);min-height:100vh;padding:32px 16px}
+  .wrap{max-width:640px;margin:0 auto}
+  .card{background:var(--card);border-radius:18px;padding:30px 30px 34px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--soft);font-size:14px;margin:0 0 24px}
+  label{display:block;font-size:13px;font-weight:600;margin:16px 0 6px}
+  .hint{font-weight:400;color:var(--soft);font-size:12px}
+  .req{color:#e74c3c;font-weight:bold}
+  input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--field);font-size:14px;font-family:inherit;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  textarea{resize:vertical;min-height:64px}
+  .readonly{background:#EFEDF6;color:#332e48;cursor:not-allowed;font-weight:500;}
+  .sec{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .bandgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:4px}
+  .band{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--field);border:1px solid var(--line);border-radius:9px;padding:6px 10px}
+  .band span{font-size:13px}
+  .band select{width:70px;padding:6px}
+  button{margin-top:26px;width:100%;padding:14px;border:0;border-radius:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5;cursor:default}
+  .hidden{display:none}
+  .ok{background:#E3F0E8;border:1px solid var(--accent2);color:#14301F;border-radius:11px;padding:18px;text-align:center;margin-top:20px}
+  .ok b{font-size:18px;color:#14301F}
+  #loading{color:var(--soft);font-size:14px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Equipment Request</h1>
+    <p class="sub">Pick a clinic to automatically load address and contact info on file.</p>
+
+    <div id="loading">Loading clinics…</div>
+
+    <div id="form" class="hidden">
+      <div class="sec">Clinic</div>
+      <label>Clinic
+        <span class="hint">— pick from the list, or choose “My clinic is not listed”</span>
+      </label>
+      <select id="clinic"></select>
+
+      <!-- Clinic Address Fields -->
+      <div id="clinicDetailsBox" class="hidden" style="margin-top: 12px;">
+        <div class="row">
+          <div>
+            <label>Organization Name</label>
+            <input id="orgName">
+          </div>
+          <div>
+            <label>Clinic Location</label>
+            <input id="location">
+          </div>
+        </div>
+        <label>Street Line 1</label>
+        <input id="street1">
+        <label>Street Line 2</label>
+        <input id="street2">
+        <div class="row">
+          <div>
+            <label>City</label>
+            <input id="city">
+          </div>
+          <div>
+            <label>State</label>
+            <input id="state">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Country</label>
+            <input id="country">
+          </div>
+          <div>
+            <label>Postal Code</label>
+            <input id="postal">
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">Designated Contact for this Clinic</div>
+      <div class="row">
+        <div>
+          <label>Designated Contact Name <span id="contactReqStar" class="req hidden">*</span></label>
+          <input id="contact" placeholder="Name">
+        </div>
+        <div>
+          <label>Designated Contact Phone <span id="phoneReqStar" class="req hidden">*</span></label>
+          <input id="contactPhone" placeholder="Phone">
+        </div>
+      </div>
+      <label>Designated Contact Email <span id="emailReqStar" class="req hidden">*</span></label>
+      <input id="contactEmail" type="email" placeholder="name@example.com">
+
+      <div class="sec">Requestor</div>
+      <div class="row">
+        <div>
+          <label>Your name <span id="reqNameStar" class="req">*</span></label>
+          <input id="requestor" placeholder="Who is placing this order">
+        </div>
+        <div>
+          <label>Your email <span id="reqEmailStar" class="req">*</span></label>
+          <input id="requestorEmail" type="email" placeholder="you@bandconnect.net">
+        </div>
+      </div>
+
+      <div class="sec">Kits</div>
+      <div class="row">
+        <div>
+          <label>Kit type <span class="req">*</span></label>
+          <select id="kitType" required>
+            <option value="">— select —</option>
+            <option>Upper Extremity</option>
+            <option>Lower Extremity</option>
+          </select>
+        </div>
+        <div>
+          <label>Kits requested <span class="req">*</span></label>
+          <select id="kits" class="numsel" required></select>
+        </div>
+      </div>
+
+      <div class="sec">Bands <span class="hint" style="text-transform:none;letter-spacing:0">— bundles, one bundle = five bands</span></div>
+      <div class="bandgrid" id="bandGrid"></div>
+
+      <div class="sec">Anything else</div>
+      <label>Notes</label>
+      <textarea id="notes" placeholder="Deadlines, special handling…"></textarea>
+
+      <button id="submitBtn" onclick="submit()">Submit request</button>
+    </div>
+
+    <div id="done" class="ok hidden"></div>
+  </div>
+</div>
+
+<script>
+  // Updated Apps Script Endpoint URL
+  var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw802oHVBnlsA0pdNJ21hkw3Naub2eN23kcYgn5h9EPU6SquKnDPPbqTLlImQNsjtjf/exec";
+
+  var DATA = null;
+
+  function numOptions(sel){
+    for(var i=0;i<=20;i++){
+      var o=document.createElement('option');o.value=i;o.textContent=i;
+      if(i===0)o.selected=true;sel.appendChild(o);
+    }
+  }
+
+  // Fetch Clinic Data via API from Apps Script
+  fetch(SCRIPT_URL + "?action=getFormData")
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      DATA = data;
+      var c=document.getElementById('clinic');
+      c.innerHTML='<option value="">— select —</option>';
+      data.clinics.forEach(function(cl){
+        var o=document.createElement('option');o.value=cl.key;o.textContent=cl.key;c.appendChild(o);
+      });
+      var nl=document.createElement('option');nl.value='__new__';nl.textContent='My clinic is not listed';c.appendChild(nl);
+
+      document.querySelectorAll('.numsel').forEach(numOptions);
+
+      var g=document.getElementById('bandGrid');
+      data.bands.forEach(function(b){
+        var wrap=document.createElement('div');wrap.className='band';
+        var s=document.createElement('span');s.textContent=b.replace('-',' ');
+        var sel=document.createElement('select');sel.id='band_'+b;numOptions(sel);
+        wrap.appendChild(s);wrap.appendChild(sel);g.appendChild(wrap);
+      });
+
+      c.addEventListener('change',onClinic);
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('form').classList.remove('hidden');
+    })
+    .catch(function(err){
+      document.getElementById('loading').textContent = 'Error loading form data. Please refresh.';
+      console.error(err);
+    });
+
+  function setReadOnly(fields, isReadOnly) {
+    fields.forEach(function(id){
+      var el = document.getElementById(id);
+      if(isReadOnly) {
+        el.setAttribute('readonly', 'readonly');
+        el.classList.add('readonly');
+      } else {
+        el.removeAttribute('readonly');
+        el.classList.remove('readonly');
+      }
+    });
+  }
+
+  function toggleStars(isNew) {
+    var contactStars = ['contactReqStar', 'phoneReqStar', 'emailReqStar'];
+    var requestorStars = ['reqNameStar', 'reqEmailStar'];
+
+    contactStars.forEach(function(id){
+      var el = document.getElementById(id);
+      if(isNew) el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    });
+
+    requestorStars.forEach(function(id){
+      var el = document.getElementById(id);
+      if(isNew) el.classList.add('hidden');
+      else el.classList.remove('hidden');
+    });
+  }
+
+  function onClinic(){
+    var key=document.getElementById('clinic').value;
+    var box=document.getElementById('clinicDetailsBox');
+    var allClinicFields = ['orgName','location','street1','street2','city','state','country','postal','contact','contactPhone','contactEmail'];
+
+    if(!key){
+      box.classList.add('hidden');
+      allClinicFields.forEach(function(f){ document.getElementById(f).value = ''; });
+      toggleStars(false);
+      return;
+    }
+
+    box.classList.remove('hidden');
+
+    if(key==='__new__'){
+      allClinicFields.forEach(function(f){ document.getElementById(f).value = ''; });
+      setReadOnly(allClinicFields, false);
+      toggleStars(true);
+      return;
+    }
+
+    toggleStars(false);
+    var cl=DATA.clinics.filter(function(x){return x.key===key;})[0];
+    if(cl){
+      document.getElementById('orgName').value      = cl.orgName || '';
+      document.getElementById('location').value     = cl.location || '';
+      document.getElementById('street1').value      = cl.street1 || '';
+      document.getElementById('street2').value      = cl.street2 || '';
+      document.getElementById('city').value         = cl.city || '';
+      document.getElementById('state').value        = cl.state || '';
+      document.getElementById('country').value      = cl.country || '';
+      document.getElementById('postal').value       = cl.postal || '';
+      document.getElementById('contact').value      = cl.contact || '';
+      document.getElementById('contactEmail').value = cl.email || '';
+      document.getElementById('contactPhone').value = cl.phone || '';
+
+      setReadOnly(allClinicFields, true);
+    }
+  }
+
+  function submit(){
+    var clinic=document.getElementById('clinic').value;
+    var isNew = clinic==='__new__';
+    if(!clinic){alert('Please pick a clinic, or choose “My clinic is not listed”.');return;}
+
+    var contact = document.getElementById('contact').value.trim();
+    var contactPhone = document.getElementById('contactPhone').value.trim();
+    var contactEmail = document.getElementById('contactEmail').value.trim();
+    var requestor = document.getElementById('requestor').value.trim();
+    var requestorEmail = document.getElementById('requestorEmail').value.trim();
+    var kitType = document.getElementById('kitType').value;
+    var kits = document.getElementById('kits').value;
+
+    if(isNew && (!contact || !contactPhone || !contactEmail)){
+      alert('Please fill out Designated Contact Name, Phone, and Email for the new clinic.');
+      return;
+    }
+
+    if(!isNew && (!requestor || !requestorEmail)){
+      alert('Please fill out your Name and Email under the Requestor section.');
+      return;
+    }
+
+    if(!kitType){
+      alert('Please select a Kit Type.');
+      return;
+    }
+    if(!kits || parseInt(kits, 10) <= 0){
+      alert('Please select at least 1 kit requested.');
+      return;
+    }
+
+    var bands={};
+    DATA.bands.forEach(function(b){bands[b]=document.getElementById('band_'+b).value;});
+
+    var payload={
+      clinicKey: isNew ? '' : clinic,
+      isNewClinic: isNew,
+      newClinic: isNew ? document.getElementById('orgName').value.trim() : '',
+      orgName: document.getElementById('orgName').value.trim(),
+      location: document.getElementById('location').value.trim(),
+      street1: document.getElementById('street1').value.trim(),
+      street2: document.getElementById('street2').value.trim(),
+      city: document.getElementById('city').value.trim(),
+      state: document.getElementById('state').value.trim(),
+      country: document.getElementById('country').value.trim(),
+      postal: document.getElementById('postal').value.trim(),
+      contact: contact,
+      contactEmail: contactEmail,
+      contactPhone: contactPhone,
+      requestor: requestor,
+      requestorEmail: requestorEmail,
+      kitType: kitType,
+      kits: kits,
+      bands: bands,
+      notes: document.getElementById('notes').value.trim()
+    };
+
+    var btn=document.getElementById('submitBtn');
+    btn.disabled=true;btn.textContent='Submitting…';
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(res){
+      if(res.ok){
+        document.getElementById('form').classList.add('hidden');
+        var d=document.getElementById('done');
+        d.innerHTML='<b>Request received</b><br><br>Your order reference is<br><b>'+res.orderId+'</b><br><br>Band Connect will confirm before shipping.';
+        d.classList.remove('hidden');
+      } else {
+        btn.disabled=false;btn.textContent='Submit request';
+        alert('Something went wrong: ' + (res.error || 'Submission failed'));
+      }
+    })
+    .catch(function(err){
+      btn.disabled=false;btn.textContent='Submit request';
+      alert('Submission error: ' + err.message);
+    });
+  }
+</script>
+</body>
+</html>
