@@ -116,10 +116,10 @@
         </div>
       </div>
 
-      <div class="sec">Kits</div>
+      <div class="sec">Kits & Totes</div>
       <div class="row">
         <div>
-          <label>Kit type <span class="req">*</span></label>
+          <label>Package type <span class="req">*</span></label>
           <select id="kitType" required>
             <option value="">— select —</option>
             <option>Upper Extremity</option>
@@ -129,6 +129,12 @@
         <div>
           <label>Kits requested <span class="req">*</span></label>
           <select id="kits" class="numsel" required></select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>Totes requested</label>
+          <select id="totes" class="numsel"></select>
         </div>
       </div>
 
@@ -270,6 +276,7 @@
     var requestorEmail = document.getElementById('requestorEmail').value.trim();
     var kitType = document.getElementById('kitType').value;
     var kits = document.getElementById('kits').value;
+    var totes = document.getElementById('totes').value || 0;
 
     if(isNew && (!contact || !contactPhone || !contactEmail)){
       alert('Please fill out Designated Contact Name, Phone, and Email for the new clinic.');
@@ -282,7 +289,7 @@
     }
 
     if(!kitType){
-      alert('Please select a Kit Type.');
+      alert('Please select a Package Type.');
       return;
     }
     if(!kits || parseInt(kits, 10) <= 0){
@@ -312,6 +319,7 @@
       requestorEmail: requestorEmail,
       kitType: kitType,
       kits: kits,
+      totes: totes,
       bands: bands,
       notes: document.getElementById('notes').value.trim()
     };
