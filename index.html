@@ -147,7 +147,6 @@
 </div>
 
 <script>
-  // Updated Apps Script Endpoint URL
   var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw802oHVBnlsA0pdNJ21hkw3Naub2eN23kcYgn5h9EPU6SquKnDPPbqTLlImQNsjtjf/exec";
 
   var DATA = null;
@@ -159,7 +158,6 @@
     }
   }
 
-  // Fetch Clinic Data via API from Apps Script
   fetch(SCRIPT_URL + "?action=getFormData")
     .then(function(res){ return res.json(); })
     .then(function(data){
@@ -323,6 +321,9 @@
 
     fetch(SCRIPT_URL, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
       body: JSON.stringify(payload)
     })
     .then(function(res){ return res.json(); })
