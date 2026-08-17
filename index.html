@@ -25,16 +25,23 @@
     .readonly{background:#EFEDF6;color:#332e48;cursor:not-allowed;font-weight:500;}
     .sec{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* 🎨 2-COLUMN MATCHED BAND MATRIX */
     .bandgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:4px}
     .band{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--field);border:1px solid var(--line);border-radius:9px;padding:6px 10px}
-    .band span{font-size:13px}
+    .band span{font-size:13px;font-weight:500;}
     .band select{width:70px;padding:6px}
+
     button{margin-top:26px;width:100%;padding:14px;border:0;border-radius:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
     button:disabled{opacity:.5;cursor:default}
     .hidden{display:none}
     .ok{background:#E3F0E8;border:1px solid var(--accent2);color:#14301F;border-radius:11px;padding:18px;text-align:center;margin-top:20px}
     .ok b{font-size:18px;color:#14301F}
     #loading{color:var(--soft);font-size:14px;text-align:center;padding:20px}
+
+    @media(max-width:480px){
+      .bandgrid{grid-template-columns:1fr;}
+    }
   </style>
 </head>
 <body>
@@ -151,11 +158,28 @@
 
   var DATA = null;
 
+  // 🎨 SIDE-BY-SIDE COLOR MAPPING: 2FT on Left, 5FT on Right
+  var BAND_PAIRS = [
+    { left: '2FT-Yellow', right: '5FT-Yellow' },
+    { left: '2FT-Red',    right: '5FT-Red' },
+    { left: '2FT-Green',  right: '5FT-Green' },
+    { left: '2FT-Blue',   right: '5FT-Blue' },
+    { left: '2FT-Black',  right: '5FT-Black' }
+  ];
+
   function numOptions(sel){
     for(var i=0;i<=20;i++){
       var o=document.createElement('option');o.value=i;o.textContent=i;
       if(i===0)o.selected=true;sel.appendChild(o);
     }
+  }
+
+  function createBandElement(b) {
+    var wrap=document.createElement('div');wrap.className='band';
+    var s=document.createElement('span');s.textContent=b.replace('-',' ');
+    var sel=document.createElement('select');sel.id='band_'+b;numOptions(sel);
+    wrap.appendChild(s);wrap.appendChild(sel);
+    return wrap;
   }
 
   fetch(SCRIPT_URL + "?action=getFormData")
@@ -172,11 +196,12 @@
       document.querySelectorAll('.numsel').forEach(numOptions);
 
       var g=document.getElementById('bandGrid');
-      data.bands.forEach(function(b){
-        var wrap=document.createElement('div');wrap.className='band';
-        var s=document.createElement('span');s.textContent=b.replace('-',' ');
-        var sel=document.createElement('select');sel.id='band_'+b;numOptions(sel);
-        wrap.appendChild(s);wrap.appendChild(sel);g.appendChild(wrap);
+      g.innerHTML = '';
+
+      // 🔄 Dynamically populates 2FT on Left, 5FT on Right in side-by-side color order
+      BAND_PAIRS.forEach(function(pair){
+        g.appendChild(createBandElement(pair.left));
+        g.appendChild(createBandElement(pair.right));
       });
 
       c.addEventListener('change',onClinic);
@@ -291,7 +316,10 @@
     }
 
     var bands={};
-    DATA.bands.forEach(function(b){bands[b]=document.getElementById('band_'+b).value;});
+    BAND_PAIRS.forEach(function(pair){
+      bands[pair.left] = document.getElementById('band_'+pair.left).value;
+      bands[pair.right] = document.getElementById('band_'+pair.right).value;
+    });
 
     var payload={
       clinicKey: isNew ? '' : clinic,
