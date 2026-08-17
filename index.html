@@ -29,7 +29,7 @@
     /* 🎨 2-COLUMN MATCHED BAND MATRIX */
     .bandgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:4px}
     .band{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--field);border:1px solid var(--line);border-radius:9px;padding:6px 10px}
-    .band span{font-size:13px;font-weight:500;}
+    .band span{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;}
     .band select{width:70px;padding:6px}
 
     button{margin-top:26px;width:100%;padding:14px;border:0;border-radius:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
@@ -123,10 +123,10 @@
         </div>
       </div>
 
-      <div class="sec">Kits</div>
+      <div class="sec">Kits & Totes</div>
       <div class="row">
         <div>
-          <label>Kit type <span class="req">*</span></label>
+          <label>Package type <span class="req">*</span></label>
           <select id="kitType" required>
             <option value="">— select —</option>
             <option>Upper Extremity</option>
@@ -136,6 +136,12 @@
         <div>
           <label>Kits requested <span class="req">*</span></label>
           <select id="kits" class="numsel" required></select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>Totes requested</label>
+          <select id="totes" class="numsel"></select>
         </div>
       </div>
 
@@ -158,13 +164,21 @@
 
   var DATA = null;
 
-  // 🎨 SIDE-BY-SIDE COLOR MAPPING: 2FT on Left, 5FT on Right
+  // 🎨 COLOR EMOJI MAPPING + MATCHED 2FT vs 5FT SIDE-BY-SIDE PAIRS
+  var COLOR_EMOJIS = {
+    'Yellow': '🟡',
+    'Red': '🔴',
+    'Green': '🟢',
+    'Blue': '🔵',
+    'Black': '⚫'
+  };
+
   var BAND_PAIRS = [
-    { left: '2FT-Yellow', right: '5FT-Yellow' },
-    { left: '2FT-Red',    right: '5FT-Red' },
-    { left: '2FT-Green',  right: '5FT-Green' },
-    { left: '2FT-Blue',   right: '5FT-Blue' },
-    { left: '2FT-Black',  right: '5FT-Black' }
+    { left: '2FT-Yellow', right: '5FT-Yellow', color: 'Yellow' },
+    { left: '2FT-Red',    right: '5FT-Red',    color: 'Red' },
+    { left: '2FT-Green',  right: '5FT-Green',  color: 'Green' },
+    { left: '2FT-Blue',   right: '5FT-Blue',   color: 'Blue' },
+    { left: '2FT-Black',  right: '5FT-Black',  color: 'Black' }
   ];
 
   function numOptions(sel){
@@ -174,9 +188,10 @@
     }
   }
 
-  function createBandElement(b) {
+  function createBandElement(b, colorName) {
+    var emoji = COLOR_EMOJIS[colorName] || '⚪';
     var wrap=document.createElement('div');wrap.className='band';
-    var s=document.createElement('span');s.textContent=b.replace('-',' ');
+    var s=document.createElement('span');s.innerHTML=emoji + ' ' + b.replace('-',' ');
     var sel=document.createElement('select');sel.id='band_'+b;numOptions(sel);
     wrap.appendChild(s);wrap.appendChild(sel);
     return wrap;
@@ -198,10 +213,10 @@
       var g=document.getElementById('bandGrid');
       g.innerHTML = '';
 
-      // 🔄 Dynamically populates 2FT on Left, 5FT on Right in side-by-side color order
+      // 🔄 Populates 2FT on Left, 5FT on Right with Color Circle Emojis
       BAND_PAIRS.forEach(function(pair){
-        g.appendChild(createBandElement(pair.left));
-        g.appendChild(createBandElement(pair.right));
+        g.appendChild(createBandElement(pair.left, pair.color));
+        g.appendChild(createBandElement(pair.right, pair.color));
       });
 
       c.addEventListener('change',onClinic);
@@ -295,6 +310,7 @@
     var requestorEmail = document.getElementById('requestorEmail').value.trim();
     var kitType = document.getElementById('kitType').value;
     var kits = document.getElementById('kits').value;
+    var totes = document.getElementById('totes').value || 0;
 
     if(isNew && (!contact || !contactPhone || !contactEmail)){
       alert('Please fill out Designated Contact Name, Phone, and Email for the new clinic.');
@@ -307,7 +323,7 @@
     }
 
     if(!kitType){
-      alert('Please select a Kit Type.');
+      alert('Please select a Package Type.');
       return;
     }
     if(!kits || parseInt(kits, 10) <= 0){
@@ -340,6 +356,7 @@
       requestorEmail: requestorEmail,
       kitType: kitType,
       kits: kits,
+      totes: totes,
       bands: bands,
       notes: document.getElementById('notes').value.trim()
     };
