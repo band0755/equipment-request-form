@@ -26,7 +26,7 @@
     .sec{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-    /* 🎨 2-COLUMN MATCHED BAND MATRIX */
+    /* 2-column matched band matrix */
     .bandgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:4px}
     .band{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--field);border:1px solid var(--line);border-radius:9px;padding:6px 10px}
     .band span{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;}
@@ -39,25 +39,17 @@
     .ok b{font-size:18px;color:#14301F}
     #loading{color:var(--soft);font-size:14px;text-align:center;padding:20px}
 
-    /* 🌀 BUFFERING SPINNER */
     .spinner {
-      display: inline-block;
-      width: 1.1rem;
-      height: 1.1rem;
-      vertical-align: text-bottom;
-      border: 0.15em solid currentColor;
-      border-right-color: transparent;
-      border-radius: 50%;
-      animation: spinner-border .75s linear infinite;
-      margin-right: 8px;
+      display:inline-block; width:1.1rem; height:1.1rem;
+      vertical-align:text-bottom;
+      border:0.15em solid currentColor; border-right-color:transparent;
+      border-radius:50%;
+      animation:spinner-border .75s linear infinite;
+      margin-right:8px;
     }
-    @keyframes spinner-border {
-      100% { transform: rotate(360deg); }
-    }
+    @keyframes spinner-border { 100% { transform: rotate(360deg); } }
 
-    @media(max-width:480px){
-      .bandgrid{grid-template-columns:1fr;}
-    }
+    @media(max-width:480px){ .bandgrid{grid-template-columns:1fr;} }
   </style>
 </head>
 <body>
@@ -75,7 +67,6 @@
       </label>
       <select id="clinic"></select>
 
-      <!-- Clinic Address Fields -->
       <div id="clinicDetailsBox" class="hidden" style="margin-top: 12px;">
         <div class="row">
           <div>
@@ -89,7 +80,7 @@
         </div>
         <label>Street Line 1</label>
         <input id="street1">
-        <label>Street Line 2</label>
+        <label>Street Line 2 <span class="hint">— suite, unit, or apartment</span></label>
         <input id="street2">
         <div class="row">
           <div>
@@ -162,7 +153,7 @@
       <label>Notes</label>
       <textarea id="notes" placeholder="Deadlines, special handling…"></textarea>
 
-      <button id="submitBtn" onclick="submit()">Submit request</button>
+      <button id="submitBtn" type="button">Submit request</button>
     </div>
 
     <div id="done" class="ok hidden"></div>
@@ -174,7 +165,6 @@
 
   var DATA = null;
 
-  // 🎨 COLOR EMOJI MAPPING + MATCHED 2FT vs 5FT SIDE-BY-SIDE PAIRS
   var COLOR_EMOJIS = {
     'Yellow': '🟡',
     'Red': '🔴',
@@ -192,18 +182,23 @@
   ];
 
   function numOptions(sel){
+    if (sel.dataset.filled === '1') return;   // never double-populate
     for(var i=0;i<=20;i++){
-      var o=document.createElement('option');o.value=i;o.textContent=i;
-      if(i===0)o.selected=true;sel.appendChild(o);
+      var o=document.createElement('option');
+      o.value=i; o.textContent=i;
+      if(i===0) o.selected=true;
+      sel.appendChild(o);
     }
+    sel.dataset.filled = '1';
   }
 
+  // Band names contain a hyphen, so replace only the first one for display.
   function createBandElement(b, colorName) {
     var emoji = COLOR_EMOJIS[colorName] || '⚪';
-    var wrap=document.createElement('div');wrap.className='band';
-    var s=document.createElement('span');s.innerHTML=emoji + ' ' + b.replace('-',' ');
-    var sel=document.createElement('select');sel.id='band_'+b;numOptions(sel);
-    wrap.appendChild(s);wrap.appendChild(sel);
+    var wrap=document.createElement('div'); wrap.className='band';
+    var s=document.createElement('span'); s.textContent = emoji + ' ' + b.replace('-',' ');
+    var sel=document.createElement('select'); sel.id='band_'+b; numOptions(sel);
+    wrap.appendChild(s); wrap.appendChild(sel);
     return wrap;
   }
 
@@ -213,23 +208,25 @@
       DATA = data;
       var c=document.getElementById('clinic');
       c.innerHTML='<option value="">— select —</option>';
-      data.clinics.forEach(function(cl){
-        var o=document.createElement('option');o.value=cl.key;o.textContent=cl.key;c.appendChild(o);
+      (data.clinics || []).forEach(function(cl){
+        var o=document.createElement('option');
+        o.value=cl.key; o.textContent=cl.key;
+        c.appendChild(o);
       });
-      var nl=document.createElement('option');nl.value='__new__';nl.textContent='My clinic is not listed';c.appendChild(nl);
+      var nl=document.createElement('option');
+      nl.value='__new__'; nl.textContent='My clinic is not listed';
+      c.appendChild(nl);
 
       document.querySelectorAll('.numsel').forEach(numOptions);
 
       var g=document.getElementById('bandGrid');
       g.innerHTML = '';
-
-      // 🔄 Populates 2FT on Left, 5FT on Right with Color Circle Emojis
       BAND_PAIRS.forEach(function(pair){
         g.appendChild(createBandElement(pair.left, pair.color));
         g.appendChild(createBandElement(pair.right, pair.color));
       });
 
-      c.addEventListener('change',onClinic);
+      c.addEventListener('change', onClinic);
       document.getElementById('loading').classList.add('hidden');
       document.getElementById('form').classList.remove('hidden');
     })
@@ -241,6 +238,7 @@
   function setReadOnly(fields, isReadOnly) {
     fields.forEach(function(id){
       var el = document.getElementById(id);
+      if(!el) return;
       if(isReadOnly) {
         el.setAttribute('readonly', 'readonly');
         el.classList.add('readonly');
@@ -252,19 +250,13 @@
   }
 
   function toggleStars(isNew) {
-    var contactStars = ['contactReqStar', 'phoneReqStar', 'emailReqStar'];
-    var requestorStars = ['reqNameStar', 'reqEmailStar'];
-
-    contactStars.forEach(function(id){
+    ['contactReqStar','phoneReqStar','emailReqStar'].forEach(function(id){
       var el = document.getElementById(id);
-      if(isNew) el.classList.remove('hidden');
-      else el.classList.add('hidden');
+      if(isNew) el.classList.remove('hidden'); else el.classList.add('hidden');
     });
-
-    requestorStars.forEach(function(id){
+    ['reqNameStar','reqEmailStar'].forEach(function(id){
       var el = document.getElementById(id);
-      if(isNew) el.classList.add('hidden');
-      else el.classList.remove('hidden');
+      if(isNew) el.classList.add('hidden'); else el.classList.remove('hidden');
     });
   }
 
@@ -276,6 +268,7 @@
     if(!key){
       box.classList.add('hidden');
       allClinicFields.forEach(function(f){ document.getElementById(f).value = ''; });
+      setReadOnly(allClinicFields, false);
       toggleStars(false);
       return;
     }
@@ -290,7 +283,7 @@
     }
 
     toggleStars(false);
-    var cl=DATA.clinics.filter(function(x){return x.key===key;})[0];
+    var cl=(DATA.clinics || []).filter(function(x){return x.key===key;})[0];
     if(cl){
       document.getElementById('orgName').value      = cl.orgName || '';
       document.getElementById('location').value     = cl.location || '';
@@ -303,46 +296,37 @@
       document.getElementById('contact').value      = cl.contact || '';
       document.getElementById('contactEmail').value = cl.email || '';
       document.getElementById('contactPhone').value = cl.phone || '';
-
       setReadOnly(allClinicFields, true);
     }
   }
 
-  function submit(){
+  function submitRequest(){
     var clinic=document.getElementById('clinic').value;
     var isNew = clinic==='__new__';
-    if(!clinic){alert('Please pick a clinic, or choose “My clinic is not listed”.');return;}
+    if(!clinic){ alert('Please pick a clinic, or choose “My clinic is not listed”.'); return; }
 
-    var contact = document.getElementById('contact').value.trim();
-    var contactPhone = document.getElementById('contactPhone').value.trim();
-    var contactEmail = document.getElementById('contactEmail').value.trim();
-    var requestor = document.getElementById('requestor').value.trim();
+    var contact        = document.getElementById('contact').value.trim();
+    var contactPhone   = document.getElementById('contactPhone').value.trim();
+    var contactEmail   = document.getElementById('contactEmail').value.trim();
+    var requestor      = document.getElementById('requestor').value.trim();
     var requestorEmail = document.getElementById('requestorEmail').value.trim();
-    var kitType = document.getElementById('kitType').value;
-    var kits = document.getElementById('kits').value;
+    var kitType        = document.getElementById('kitType').value;
+    var kits           = document.getElementById('kits').value;
 
     if(isNew && (!contact || !contactPhone || !contactEmail)){
       alert('Please fill out Designated Contact Name, Phone, and Email for the new clinic.');
       return;
     }
-
     if(!isNew && (!requestor || !requestorEmail)){
       alert('Please fill out your Name and Email under the Requestor section.');
       return;
     }
-
-    if(!kitType){
-      alert('Please select a Package Type.');
-      return;
-    }
-    if(!kits || parseInt(kits, 10) <= 0){
-      alert('Please select at least 1 kit requested.');
-      return;
-    }
+    if(!kitType){ alert('Please select a Package Type.'); return; }
+    if(!kits || parseInt(kits, 10) <= 0){ alert('Please select at least 1 kit requested.'); return; }
 
     var bands={};
     BAND_PAIRS.forEach(function(pair){
-      bands[pair.left] = document.getElementById('band_'+pair.left).value;
+      bands[pair.left]  = document.getElementById('band_'+pair.left).value;
       bands[pair.right] = document.getElementById('band_'+pair.right).value;
     });
 
@@ -375,9 +359,7 @@
 
     fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     })
     .then(function(res){ return res.json(); })
@@ -385,7 +367,16 @@
       if(res.ok){
         document.getElementById('form').classList.add('hidden');
         var d=document.getElementById('done');
-        d.innerHTML='<b>Request received</b><br><br>Your order reference is<br><b>'+res.orderId+'</b><br><br>Band Connect will confirm before shipping.';
+        d.textContent = '';
+        var h=document.createElement('b'); h.textContent='Request received';
+        var p=document.createElement('div'); p.style.marginTop='12px';
+        p.textContent='Your order reference is';
+        var id=document.createElement('div');
+        var idB=document.createElement('b'); idB.textContent=res.orderId;
+        id.appendChild(idB);
+        var f=document.createElement('div'); f.style.marginTop='12px';
+        f.textContent='Band Connect will confirm before shipping.';
+        d.appendChild(h); d.appendChild(p); d.appendChild(id); d.appendChild(f);
         d.classList.remove('hidden');
       } else {
         btn.disabled=false;
@@ -399,6 +390,8 @@
       alert('Submission error: ' + err.message);
     });
   }
+
+  document.getElementById('submitBtn').addEventListener('click', submitRequest);
 </script>
 </body>
 </html>
