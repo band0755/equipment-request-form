@@ -32,12 +32,28 @@
     .band span{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;}
     .band select{width:70px;padding:6px}
 
-    button{margin-top:26px;width:100%;padding:14px;border:0;border-radius:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
-    button:disabled{opacity:.5;cursor:default}
+    button{margin-top:26px;width:100%;padding:14px;border:0;border-radius:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:flex;justify-content:center;align-items:center;transition:all 0.2s ease;}
+    button:disabled{opacity:.6;cursor:not-allowed;}
     .hidden{display:none}
     .ok{background:#E3F0E8;border:1px solid var(--accent2);color:#14301F;border-radius:11px;padding:18px;text-align:center;margin-top:20px}
     .ok b{font-size:18px;color:#14301F}
     #loading{color:var(--soft);font-size:14px;text-align:center;padding:20px}
+
+    /* 🌀 BUFFERING SPINNER */
+    .spinner {
+      display: inline-block;
+      width: 1.1rem;
+      height: 1.1rem;
+      vertical-align: text-bottom;
+      border: 0.15em solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spinner-border .75s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spinner-border {
+      100% { transform: rotate(360deg); }
+    }
 
     @media(max-width:480px){
       .bandgrid{grid-template-columns:1fr;}
@@ -50,7 +66,7 @@
     <h1>Equipment Request</h1>
     <p class="sub">Pick a clinic to automatically load address and contact info on file.</p>
 
-    <div id="loading">Loading clinics…</div>
+    <div id="loading"><span class="spinner"></span> Loading clinics…</div>
 
     <div id="form" class="hidden">
       <div class="sec">Clinic</div>
@@ -354,7 +370,8 @@
     };
 
     var btn=document.getElementById('submitBtn');
-    btn.disabled=true;btn.textContent='Submitting…';
+    btn.disabled=true;
+    btn.innerHTML='<span class="spinner"></span> Submitting request…';
 
     fetch(SCRIPT_URL, {
       method: 'POST',
@@ -371,12 +388,14 @@
         d.innerHTML='<b>Request received</b><br><br>Your order reference is<br><b>'+res.orderId+'</b><br><br>Band Connect will confirm before shipping.';
         d.classList.remove('hidden');
       } else {
-        btn.disabled=false;btn.textContent='Submit request';
+        btn.disabled=false;
+        btn.innerHTML='Submit request';
         alert('Something went wrong: ' + (res.error || 'Submission failed'));
       }
     })
     .catch(function(err){
-      btn.disabled=false;btn.textContent='Submit request';
+      btn.disabled=false;
+      btn.innerHTML='Submit request';
       alert('Submission error: ' + err.message);
     });
   }
