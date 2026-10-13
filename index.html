@@ -376,8 +376,14 @@
         id.appendChild(idB);
         var f=document.createElement('div'); f.style.marginTop='12px';
         f.textContent='Band Connect will confirm before shipping.';
-        d.appendChild(h); d.appendChild(p); d.appendChild(id); d.appendChild(f);
+        var again=document.createElement('button');
+        again.type='button';
+        again.id='anotherBtn';
+        again.textContent='Submit another clinic request';
+        again.addEventListener('click', resetForNewRequest);
+        d.appendChild(h); d.appendChild(p); d.appendChild(id); d.appendChild(f); d.appendChild(again);
         d.classList.remove('hidden');
+        window.scrollTo(0, 0);
       } else {
         btn.disabled=false;
         btn.innerHTML='Submit request';
@@ -389,6 +395,37 @@
       btn.innerHTML='Submit request';
       alert('Submission error: ' + err.message);
     });
+  }
+
+  // Clears the form for another request without reloading the page.
+  // Requestor name and email are kept, since the same person is usually
+  // placing several requests in a row.
+  function resetForNewRequest(){
+    var clinicFields = ['orgName','location','street1','street2','city','state','country','postal','contact','contactPhone','contactEmail'];
+    clinicFields.forEach(function(f){ document.getElementById(f).value = ''; });
+    setReadOnly(clinicFields, false);
+    toggleStars(false);
+
+    document.getElementById('clinic').value = '';
+    document.getElementById('clinicDetailsBox').classList.add('hidden');
+
+    document.getElementById('kitType').value = '';
+    document.getElementById('kits').value = '0';
+    BAND_PAIRS.forEach(function(pair){
+      document.getElementById('band_' + pair.left).value = '0';
+      document.getElementById('band_' + pair.right).value = '0';
+    });
+    document.getElementById('notes').value = '';
+
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = false;
+    btn.innerHTML = 'Submit request';
+
+    var d = document.getElementById('done');
+    d.classList.add('hidden');
+    d.textContent = '';
+    document.getElementById('form').classList.remove('hidden');
+    window.scrollTo(0, 0);
   }
 
   document.getElementById('submitBtn').addEventListener('click', submitRequest);
